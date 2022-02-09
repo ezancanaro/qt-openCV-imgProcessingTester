@@ -1,0 +1,411 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+
+
+cv::Mat originalImage;
+//cv::Mat transformedImage;
+int nRows;
+int nCols;
+std::string imagePath = "";
+
+cv::Mat tempImage;
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    // read an image
+    imagePath = "D:\2.png";
+    setImages(true);
+    //originalImage = image;
+    //cv::cvtColor(originalImage,newImage,cv::COLOR_BGR2GRAY);
+    //apply_gaussianBlur(image,newImage);
+    //newImage.convertTo(newImage,CV_8UC1);
+    //apply_bilateralFilter(newImage,newImage2);
+    //apply_customSobelPlusBinary(newImage2,newImage,130,255,true);
+    /*// create image window named "My Image"
+    cv::namedWindow("My Image");
+    // show the image on window
+    cv::imshow("My Image", image);
+    cv::namedWindow("Transformed Image");
+    cv::imshow("Transformed Image", newImage);
+    printf("Bye %d",123245678);
+    //
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(displayImage()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(displayTransformedImage()));
+    timer->start();
+    //*/
+    /*
+ *  void grayScaleButton_clicked();
+    void hsvColorFilterButton_clicked();
+    void bilaterFilterButton_clicked();
+    void gaussianBlurButton_clicked();
+    void medianBlurButton_clicked();
+    void simpleThresholdButton_clicked();
+    void adaptiveThresholdButton_clicked();
+    void subtractImageButton_clicked();
+    void morphButton_clicked();
+    void openCVSobelButton_clicked();
+    void customSobelButton_clicked();
+ */
+
+
+
+    connect(ui->grayScaleButton_2,           SIGNAL(clicked()), this, SLOT(grayScaleButton_clicked()));
+    connect(ui->hsvFilterButton_2,           SIGNAL(clicked()), this, SLOT(hsvColorFilterButton_clicked()));
+    connect(ui->bilateralFilterButton_2,     SIGNAL(clicked()), this, SLOT(bilateralFilterButton_clicked()));
+    connect(ui->gaussianBlurButton_2,        SIGNAL(clicked()), this, SLOT(gaussianBlurButton_clicked()));
+    connect(ui->medianBlurButton_2,          SIGNAL(clicked()), this, SLOT(medianBlurButton_clicked()));
+    connect(ui->simplethresholdingButton_2,  SIGNAL(clicked()), this, SLOT(simpleThresholdButton_clicked()));
+    connect(ui->adaptiveThresholdingButton_2,SIGNAL(clicked()), this, SLOT(adaptiveThresholdButton_clicked()));
+    connect(ui->subtractImageButton_2,       SIGNAL(clicked()), this, SLOT(subtractImageButton_clicked()));
+    connect(ui->morphologyOperatorButton_2,  SIGNAL(clicked()), this, SLOT(morphButton_clicked()));
+    connect(ui->openCVSobelButton_2,         SIGNAL(clicked()), this, SLOT(openCVSobelButton_clicked()));
+    connect(ui->customSobelButton_2,         SIGNAL(clicked()), this, SLOT(customSobelButton_clicked()));
+    connect(ui->undoButton,                  SIGNAL(clicked()), this, SLOT(undoOperationButton_clicked()));
+    connect(ui->drawContoursButton,          SIGNAL(clicked()), this, SLOT(drawContoursButton_clicked()));
+    connect(ui->findContoursButton,          SIGNAL(clicked()), this, SLOT(findContoursButton_clicked()));
+    //    connect(ui->findContour
+
+    optionsScene = new QGraphicsScene(this);
+
+    QWidget *container = new QWidget(this);
+    //container->
+
+    //ui->graphicsView->setWindowFlags(Qt::FramelessWindowHint);
+
+}
+
+
+
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+/*
+void MainWindow::displayImage(){
+    cv::Mat imgToShow(nRows,nCols,CV_8U);
+
+    cv::cvtColor(originalImage,imgToShow,cv::COLOR_BGR2RGB);
+    QImage original((uchar*)imgToShow.data,nCols,nRows,imgToShow.step,QImage::Format_RGB888);
+    ui->originalImageLabel->setPixmap(QPixmap::fromImage(original));//display the image in label that is created earlier
+
+}
+void MainWindow::displayTransformedImage(){
+
+    QImage original((uchar*)transformedImage.data,nCols,nRows,transformedImage.step,QImage::Format_RGB888);
+    ui->transformedImageLAbel->setPixmap(QPixmap::fromImage(original));//display the image in label that is created earlier
+}
+//*/
+
+void MainWindow::updateView_setTemporaryImage(){
+    qDebug() << "GOT signal!!" ;
+
+    bool transformed = applyOpenCVTransform(tempImage);
+
+    if(transformed){
+        ui->imagePanel->displayImage(tempImage,nRows,nCols,imagesPanel::BIND_LABEL_TRANSFORMED, QImage::Format_Grayscale8);
+        qDebug() << "Displaying TempImage..." ;
+    }
+}
+
+void MainWindow::updateView(cv::Mat& opencvImage, bool setOriginal ){
+    //displayImage();
+    // displayTransformedImage();
+
+    if(setOriginal){
+        ui->imagePanel->displayImage(opencvImage,nRows,nCols,imagesPanel::BIND_LABEL_ORIGINAL,QImage::Format_RGB888, true, cv::COLOR_BGR2RGB);
+    }else{
+        ui->imagePanel->displayImage(opencvImage,nRows,nCols,imagesPanel::BIND_LABEL_TRANSFORMED, QImage::Format_Grayscale8);
+
+    }
+}
+
+void MainWindow::on_loadImageButton_2_clicked()
+{
+    QString filename =  QFileDialog::getOpenFileName(
+                this,
+                "Open Document",
+                "QDir::currentPath()",
+                "Images (*.png *.jpeg *.jpg *.gif);;All files (*.*) ");
+
+    if( !filename.isNull() )
+    {
+        qDebug() << "selected file path : " << filename.toUtf8();
+    }
+    imagePath = filename.toStdString();
+    imageStack.newImage(imagePath);
+    nRows = imageStack.currentImage().rows;
+    nCols = imageStack.currentImage().cols;
+    qDebug() << "NROWS AND COLS STACK IMAGE" << nRows << " " << nCols;
+    //setImages();
+    updateView(imageStack.currentImage());
+    //Create temporary copy to store modifications and display in real time.
+    tempImage = Mat(imageStack.currentImage());
+}
+
+
+void MainWindow::setImages(bool setOriginal){
+
+
+    if( setOriginal ){
+        if(imagePath.length() > 0){
+            cv::Mat image = cv::imread(imagePath, 1);
+            originalImage = image;
+            //transformedImage = originalImage;
+        }else{
+            cv::Mat image(1,1,CV_8UC1);
+            originalImage = image;
+            //transformedImage = originalImage;
+        }
+    }
+    int r = originalImage.rows;
+    int c = originalImage.cols;
+    nRows = r;
+    nCols = c;
+    qDebug() << "NROWS AND COLS" << nRows << " " << nCols;
+    //cv::Mat newImage(r,c,CV_8UC1);
+    //cv::Mat newImage2(r,c,CV_8UC1);
+    //transformedImage = originalImage;
+}
+//*/
+
+
+void MainWindow::clearOptionsForm()
+{
+
+    //ui->optionsLayout->addWidget(NULL);
+    QLayoutItem *item;
+
+    while((item = ui->optionsLayout->takeAt(0))!= nullptr){
+        if(item->widget()){
+            delete item->widget();
+        }
+        delete item;
+    }
+
+    //ui->graphicsView->setScene(nullptr);
+
+}
+
+void MainWindow::grayScaleButton_clicked(){
+    cv::Mat current = imageStack.currentImage();
+    cv::Mat transformed = imageStack.newImage(nRows,nCols);
+    std::string error_msg = "Applied Gray Scale. ";
+    try{
+        cv::cvtColor(current,transformed,cv::COLOR_BGR2GRAY);
+    }catch(cv::Exception &e){
+        error_msg += e.what();
+    }
+    logAction(QString::fromStdString(error_msg));
+    //activeImage = transformedImage;
+    // setImages(false);
+    updateView(imageStack.currentImage(),false);
+
+}
+
+
+void MainWindow::hsvColorFilterButton_clicked(){
+    /*activeOptionsForm = new customSobelOptionsForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    connectOptionsFormButtons();
+    */
+}
+void MainWindow::bilateralFilterButton_clicked(){
+    activeOptionsForm = new bilateralFilterOptionsForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    //connect(activeOptionsForm->applyTransformButton,SIGNAL(clicked()),this,SLOT(applyTransformButton_clicked()));
+    connectOptionsFormButtons();
+
+}
+void MainWindow::gaussianBlurButton_clicked(){
+
+
+    activeOptionsForm = new gaussianBlurOptionsForm();
+    //trOptions = activeOptionsForm->getOptionsForm();
+    //int formT = activeOptionsForm->getType();
+    //qDebug()<<"FORM TUPE: " << formT;
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    //connect(activeOptionsForm->applyTransformButton,SIGNAL(clicked()),this,SLOT(applyTransformButton_clicked()));
+    connectOptionsFormButtons();
+
+    //optionsScene->addWidget(activeOptionsForm);
+    //ui->graphicsView->setScene(optionsScene);
+}
+
+void MainWindow::medianBlurButton_clicked(){
+    activeOptionsForm = new medianBlurOptionsForm();
+    //ui->optionsLayout->d
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+
+}
+
+void MainWindow::simpleThresholdButton_clicked(){
+    activeOptionsForm = new simpleThresholdOptionsForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    connectOptionsFormButtons();
+}
+void MainWindow::adaptiveThresholdButton_clicked(){
+
+    activeOptionsForm = new adaptiveThresholdOptionsForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    connectOptionsFormButtons();
+
+}
+void MainWindow::subtractImageButton_clicked(){
+    activeOptionsForm = new imageSubtractionOptionsForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    connectOptionsFormButtons();
+}
+void MainWindow::morphButton_clicked(){
+    activeOptionsForm = new morphOperationsOptionForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    connectOptionsFormButtons();
+}
+void MainWindow::openCVSobelButton_clicked(){
+    activeOptionsForm = new sobelDerivativesOptionsForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    connectOptionsFormButtons();
+}
+void MainWindow::customSobelButton_clicked(){
+
+    activeOptionsForm = new customSobelOptionsForm();
+    clearOptionsForm();
+    ui->optionsLayout->addWidget(activeOptionsForm);
+    connectOptionsFormButtons();
+}
+
+void MainWindow::undoOperationButton_clicked()
+{
+    logAction("Undo button pressed");
+    bool popped = imageStack.pop();
+    if(popped){
+        if(imageStack.size() > 1){
+            updateView(imageStack.currentImage(),false);
+            logAction("Updated transformed image label");
+        }else{
+            ui->imagePanel->clearImageLabel(imagesPanel::BIND_LABEL_TRANSFORMED);
+            logAction("Cleared transformed image label");
+        }
+    }
+
+}
+
+
+void MainWindow::connectOptionsFormButtons(){
+    if(activeOptionsForm != nullptr){
+        connect(activeOptionsForm->applyTransformButton,SIGNAL(clicked()),this,SLOT(applyTransformButton_clicked()));
+        connect(activeOptionsForm,SIGNAL(transformOptionValuesChanged()),this,SLOT(updateView_setTemporaryImage()));
+        qDebug() << "Connected Temp Singnal" ;
+    }
+}
+
+
+bool MainWindow::applyOpenCVTransform(Mat &transformedImage){
+    bool transformed = true;
+    std::string error_msg;
+    cv::Mat current = imageStack.currentImage();
+    if(activeOptionsForm !=nullptr){
+
+        trOptions = activeOptionsForm->getOptionsForm();
+
+        switch (activeOptionsForm->getType()){
+        case baseOptionsForm::FORM_MEDIANBLUR:
+        {
+            medianBlurOptions *op = static_cast<medianBlurOptions*>(trOptions);
+            error_msg = "Applied Median Blur. "
+                    + apply_medianBlur(current,transformedImage,op->appertureSize);
+
+        }
+            break;
+        case baseOptionsForm::FORM_CUSTOMSOBEL:
+            error_msg = "Applied Custom Sobel..."
+                    + apply_customSobelPlusBinary(current,transformedImage,static_cast<customSobelThresholdOptions*>(trOptions));
+            break;
+        case baseOptionsForm::FORM_GAUSSIANBLUR:
+            error_msg ="Applied gaussian Blur..."
+                    + apply_gaussianBlur(current,transformedImage,static_cast<gaussianBlurOptions*>(trOptions));
+            break;
+        case baseOptionsForm::FORM_BILATERALFILTER:
+            error_msg = "Applied Bilateral Filter..."
+                    + apply_bilateralFilter(current,transformedImage,static_cast<bilateralFilterOptions*>(trOptions));
+            break;
+        case baseOptionsForm::FORM_MORPHOPERATIONS:
+            error_msg = "Morph Operations TO-DO";
+            break;
+        case baseOptionsForm::FORM_SIMPLETHRESHOLD:
+            error_msg = "Applied Simple Threshold..."
+                    + apply_simpleThreshold(current,transformedImage,static_cast<simpleThresholdOptions*>(trOptions));
+            break;
+        case baseOptionsForm::FORM_SOBELDERIVATIVES:
+            error_msg = "Applied Sobel Derivatives..."
+                    + apply_sobelDerivatives(current,transformedImage,static_cast<sobelDerivativesOptions*>(trOptions));
+
+            break;
+        case baseOptionsForm::FORM_ADAPTIVETHRESHOLD:
+            error_msg = "Applied Adaptive Thresholding..."
+                    + apply_adaptiveThreshold(current,transformedImage,static_cast<adaptiveThresholdOptions*>(trOptions));
+            break;
+        case baseOptionsForm::FORM_IMAGESSUBTRACTION:
+
+            //apply_imgSubtraction(current,transformedImage,transformedImage);
+            error_msg = "Subtracao nao implementada.";
+            break;
+        default:
+            transformed = false;
+            qDebug() << "Unknown operation to apply: " << activeOptionsForm->getType();
+            error_msg = "Unsuported transform operation: " + activeOptionsForm->getType();
+        }
+    }else{
+        transformed = false;
+        error_msg = "No Transformation Form Active!";
+    }
+    logAction(QString::fromStdString(error_msg));
+    return transformed;
+}
+
+
+
+void MainWindow::applyTransformButton_clicked()
+{
+
+    bool transformed = applyOpenCVTransform(imageStack.newImage(nRows,nCols));
+    if(transformed){
+        Mat current = imageStack.currentImage();
+        //setImages(false);
+        updateView(current,false);
+    }
+}
+
+void MainWindow::drawContoursButton_clicked()
+{
+
+    cntParser.g(imageStack.newImage(imageStack.currentImage()));
+    logAction(QString::fromStdString("Drawing Contours on Image"));
+    updateView(imageStack.currentImage(),false);
+}
+
+void MainWindow::findContoursButton_clicked()
+{
+    cntParser.f(imageStack.currentImage());
+}
+
+void MainWindow::logAction(QString logMessage){
+    ui->plainTextEdit->appendPlainText(logMessage);
+
+}

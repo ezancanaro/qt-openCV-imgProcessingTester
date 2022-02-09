@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>transformButtons</class>
+ <widget class="QWidget" name="transformButtons">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>173</width>
+    <height>610</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="verticalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>171</width>
+     <height>611</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <widget class="QPushButton" name="loadImageButton_2">
+      <property name="text">
+       <string>Load Image</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="grayScaleButton_2">
+      <property name="text">
+       <string>Apply Gray Scale</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="hsvFilterButton_2">
+      <property name="text">
+       <string>HSV Color Filter</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="bilateralFilterButton_2">
+      <property name="text">
+       <string>Bilateral Filtering</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="gaussianBlurButton_2">
+      <property name="text">
+       <string>Gaussian Blur</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="medianBlurButton_2">
+      <property name="text">
+       <string>Median Blur</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="simplethresholdingButton_2">
+      <property name="text">
+       <string>Simple Thresholding</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="adaptiveThresholdingButton_2">
+      <property name="text">
+       <string>Adaptive Thresholding</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="subtractImageButton_2">
+      <property name="text">
+       <string>Subtract from Original Gray Scale</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="morphologyOperatorButton_2">
+      <property name="text">
+       <string>Morphology Operator</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="openCVSobelButton_2">
+      <property name="text">
+       <string>OpenCV Sobel Derivatives</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="customSobelButton_2">
+      <property name="text">
+       <string>Custom Sobel + Threshold</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
